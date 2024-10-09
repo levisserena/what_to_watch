@@ -5,24 +5,23 @@ from flask import abort, flash, redirect, render_template, url_for
 from . import app, db
 from .forms import OpinionForm
 from .models import Opinion
-from settings import FLASK_DEBUG
 
 TEXT_UNIQUE = 'Такое мнение уже было оставлено ранее!'
 
 
-if FLASK_DEBUG and FLASK_DEBUG in (1, '1', True, 'True'):
-    @app.route('/config')
-    def config_view():
-        return [f'{key}={value}' for key, value in app.config.items()]
+def random_opinion():
+    quantity = Opinion.query.count()
+    if quantity:
+        offset_value = randrange(quantity)
+        opinion = Opinion.query.offset(offset_value).first()
+        return opinion
 
 
 @app.route('/')
 def index_view():
-    quantity = Opinion.query.count()
-    if not quantity:
+    opinion = random_opinion()
+    if opinion is None:
         abort(500)
-    offset_value = randrange(quantity)
-    opinion = Opinion.query.offset(offset_value).first()
     return render_template('opinion.html', opinion=opinion)
 
 
